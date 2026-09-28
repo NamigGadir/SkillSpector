@@ -334,6 +334,7 @@ def provider_name(provider: object) -> str:
         "OpenAICompatibleProvider": "openai_compatible",
         "OpenAIProvider": "openai",
         "OpencodeCLIProvider": "opencode_cli",
+        "CopilotCLIProvider": "copilot_cli",
     }
     return names.get(type(provider).__name__, _label(type(provider).__name__.lower()))
 

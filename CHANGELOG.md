@@ -1,5 +1,6 @@
 ### 2.12.0 (Unreleased)
 ### Features/Bug Fixes
+* feat(providers): add copilot_cli agent-CLI LLM provider
 * fix(coverage): account for successfully inspected linked ZIP containers while retaining member failures and archive limits
 * fix(static): stop Markdown code fence lines from reading as an open quote that merges consecutive shell lines into one marker directive (#868)
 * fix(ra1): treat a prohibition on recommending a self-update ("Do not recommend self-update") as the prohibition it is, not as an RA1 self-modification instruction (#928)

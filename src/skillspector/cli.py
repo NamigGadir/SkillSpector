@@ -669,7 +669,8 @@ def scan(
                                anthropic_proxy | bedrock | nv_build |
                                nv_inference | ollama | azure_openai |
                                openai_compatible | gemini | claude_cli |
-                               gemini_cli | opencode_cli. Defaults to the NVIDIA path
+                               gemini_cli | opencode_cli | copilot_cli.
+                               Defaults to the NVIDIA path
                                (nv_inference, falling back to nv_build in
                                OSS builds).
         SKILLSPECTOR_MODEL     Override the active provider's default
@@ -696,8 +697,8 @@ def scan(
                                              for gemini (uses Application
                                              Default Credentials / Workload Identity)
 
-        ollama uses the local Ollama service. claude_cli,
-        gemini_cli, and opencode_cli use their CLI's existing local
+        ollama uses the local Ollama service. claude_cli, gemini_cli,
+        opencode_cli, and copilot_cli use their CLI's existing local
         authentication session. codex_cli is registered but disabled because
         its read-only sandbox permits host-file reads; use another provider.
     """
