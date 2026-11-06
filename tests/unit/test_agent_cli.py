@@ -860,6 +860,33 @@ class TestCopilotArgv:
         assert ok is False
         assert "copilot login" in (reason or "")
 
+    def test_prepare_env_forwards_token_scrubbed_by_allowlist(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        for var in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("COPILOT_GITHUB_TOKEN", "ghu_example")
+        monkeypatch.setenv("GITHUB_TOKEN", "ghu_other")
+        scrubbed = _scrub_env()
+        assert "COPILOT_GITHUB_TOKEN" not in scrubbed
+
+        env = _agent_cli._prepare_copilot_env(scrubbed, str(tmp_path), [])
+
+        assert env["COPILOT_GITHUB_TOKEN"] == "ghu_example"
+        assert "GITHUB_TOKEN" not in env
+
+    def test_prepare_env_without_token_adds_nothing(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        for var in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
+            monkeypatch.delenv(var, raising=False)
+        assert _agent_cli._prepare_copilot_env({"PATH": "/bin"}, str(tmp_path), []) == {
+            "PATH": "/bin"
+        }
+
+    def test_registry_wires_copilot_env_preparation(self) -> None:
+        assert _agent_cli.get_spec("copilot").prepare_env is _agent_cli._prepare_copilot_env
+
 
 class TestAntigravityDisabled:
     """`agy` is registered but disabled (TTY-only, uncapturable): fail closed."""

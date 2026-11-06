@@ -1026,6 +1026,29 @@ def _parse_copilot_output(raw: str) -> str:
     return last_text
 
 
+_COPILOT_TOKEN_ENV_NAMES = ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
+
+
+def _prepare_copilot_env(
+    base_env: dict[str, str], temp_root: str, argv: list[str]
+) -> dict[str, str]:
+    """Forward Copilot's own login token, which ``_scrub_env`` deliberately drops.
+
+    Copilot authenticates headless runs (CI, containers) only through these
+    variables, so without them every call fails even though the auth probe,
+    which reads the parent environment, reports the CLI as logged in. Only the
+    first token set, in Copilot's own precedence order, is forwarded.
+    """
+    del temp_root, argv
+    env = dict(base_env)
+    for name in _COPILOT_TOKEN_ENV_NAMES:
+        value = os.environ.get(name)
+        if value:
+            env[name] = value
+            break
+    return env
+
+
 def _copilot_auth_check(binary: str) -> tuple[bool, str | None]:
     """Check Copilot has local credentials available (no inference).
 
@@ -1035,7 +1058,7 @@ def _copilot_auth_check(binary: str) -> tuple[bool, str | None]:
     by ``~/.copilot``, so we probe for those. A real call still fails closed if
     the stored session has expired.
     """
-    if any(os.environ.get(var) for var in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")):
+    if any(os.environ.get(var) for var in _COPILOT_TOKEN_ENV_NAMES):
         return True, None
     if os.path.isdir(os.path.join(os.path.expanduser("~"), ".copilot")):
         return True, None
@@ -1136,7 +1159,13 @@ _REGISTRY: dict[str, CliSpec] = {
         _prepare_opencode_env,
         _preflight_opencode_policy,
     ),
-    "copilot": CliSpec("copilot", _build_copilot_argv, _parse_copilot_output, _copilot_auth_check),
+    "copilot": CliSpec(
+        "copilot",
+        _build_copilot_argv,
+        _parse_copilot_output,
+        _copilot_auth_check,
+        _prepare_copilot_env,
+    ),
     # Disabled (fails closed via _build_agy_argv). agy's backend is Gemini, so it
     # reuses _parse_gemini_output rather than duplicating it — though parse is
     # never reached while _build_agy_argv raises. See the antigravity note above.
