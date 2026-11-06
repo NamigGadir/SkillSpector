@@ -322,6 +322,7 @@ inference gateways.
 | `codex_cli` | Disabled | Registered for compatibility; its read-only sandbox permits host-file reads | Use an HTTP API provider or another supported CLI provider |
 | `gemini_cli` | _(none — uses local CLI auth)_ | local `gemini` binary | local Gemini runtime fallback, or `SKILLSPECTOR_MODEL` |
 | `opencode_cli` | _(none — uses local CLI auth)_ | local `opencode` (verified 1.18.31–1.18.35, 1.19.0–1.19.4) binary | local OpenCode runtime fallback, or `SKILLSPECTOR_MODEL` |
+| `copilot_cli` | _(none — uses local CLI auth)_ | local `copilot` binary | local Copilot runtime fallback, or `SKILLSPECTOR_MODEL` |
 
 For `openai_compatible` gateways requiring extra HTTP headers, set
 `SKILLSPECTOR_COMPAT_HEADERS='{"X-Tenant-ID":"my-tenant","X-API-Key":"gateway-key"}'`.
@@ -439,6 +440,13 @@ skillspector scan ./my-skill/
 export SKILLSPECTOR_PROVIDER=claude_cli
 # Uses the local Claude CLI runtime fallback unless SKILLSPECTOR_MODEL is set.
 # export SKILLSPECTOR_MODEL=claude-sonnet-4-6
+skillspector scan ./my-skill/
+
+# Local GitHub Copilot CLI — no API key; uses your existing `copilot login` session
+# Requires: copilot CLI installed and authenticated
+export SKILLSPECTOR_PROVIDER=copilot_cli
+# Uses the local Copilot CLI runtime fallback unless SKILLSPECTOR_MODEL is set.
+# export SKILLSPECTOR_MODEL=claude-sonnet-5
 skillspector scan ./my-skill/
 
 # Gemini (via OpenAI compatibility layer)
@@ -763,7 +771,7 @@ Issues (2)
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `SKILLSPECTOR_PROVIDER` | Active LLM provider: `openai`, `anthropic`, `anthropic_proxy`, `bedrock`, `nv_build`, `gemini`, `ollama`, `azure_openai`, `openai_compatible`, `claude_cli`, `gemini_cli`, or `opencode_cli`. Hosted providers use bundled `model_registry.yaml` defaults; CLI providers fall back to the local runtime's default model unless `SKILLSPECTOR_MODEL` is set. Defaults to `nv_build`. | Optional |
+| `SKILLSPECTOR_PROVIDER` | Active LLM provider: `openai`, `anthropic`, `anthropic_proxy`, `bedrock`, `nv_build`, `gemini`, `ollama`, `azure_openai`, `openai_compatible`, `claude_cli`, `gemini_cli`, `opencode_cli`, or `copilot_cli`. Hosted providers use bundled `model_registry.yaml` defaults; CLI providers fall back to the local runtime's default model unless `SKILLSPECTOR_MODEL` is set. Defaults to `nv_build`. | Optional |
 | `GOOGLE_CLOUD_PROJECT` | Google Cloud project ID for the `gemini` provider. Authenticates via Google Cloud Application Default Credentials (ADC) or GKE Workload Identity. | Required for LLM analysis when `SKILLSPECTOR_PROVIDER=gemini` |
 | `GOOGLE_CLOUD_LOCATION` | Google Cloud location for the `gemini` provider endpoint (e.g. `global`, `us`, `eu`, `us-central1`). Defaults to `global`. | Optional (used when `SKILLSPECTOR_PROVIDER=gemini`) |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Optional path to ADC credential/config file (e.g. Workload or Workforce Identity Federation config; exported service account keys are discouraged). For local development, use `gcloud auth application-default login`; for GKE, use Workload Identity. | Optional (used when `SKILLSPECTOR_PROVIDER=gemini`) |
@@ -800,7 +808,7 @@ Issues (2)
 
 > **Disabled provider:** `codex_cli` remains registered but cannot run LLM analysis because its read-only sandbox allows host-file reads. Existing users should select an HTTP API provider or another supported CLI provider.
 
-> **CLI providers** (`claude_cli`, `gemini_cli`, `opencode_cli`): No API key is needed. Authentication is managed entirely by the agent CLI's own login session. SkillSpector never reads or forwards API keys when these providers are active. The subprocess is run with capabilities restricted, and untrusted skill content is delivered only via stdin.
+> **CLI providers** (`claude_cli`, `gemini_cli`, `opencode_cli`, `copilot_cli`): No API key is needed. Authentication is managed entirely by the agent CLI's own login session. SkillSpector never reads or forwards API keys when these providers are active. The subprocess is run with capabilities restricted, and untrusted skill content is delivered only via stdin.
 >
 > `opencode_cli` currently fails closed unless the installed OpenCode version is one of the individually verified releases (`1.18.31`, `1.18.32`, `1.18.33`, `1.18.34`, `1.18.35`, `1.19.0`, `1.19.1`, `1.19.2`, `1.19.3`, `1.19.4`), whose configuration precedence and deny-all semantics are verified by this release; every other version, including prereleases, still fails closed.
 
